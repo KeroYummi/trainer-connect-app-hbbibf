@@ -6,9 +6,11 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/styles/commonStyles";
 import { useRouter } from "expo-router";
+import { useDailyQuote } from "@/hooks/useDailyQuote";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { quote, loading } = useDailyQuote();
 
   const quickStats = [
     { label: "Workouts This Week", value: "4", icon: "figure.strengthtraining.traditional", color: colors.primary },
@@ -45,6 +47,17 @@ export default function HomeScreen() {
           <Text style={styles.greeting}>Welcome back!</Text>
           <Text style={styles.subtitle}>Here&apos;s your fitness overview</Text>
         </View>
+
+        {/* Daily Motivational Quote */}
+        {!loading && quote && (
+          <View style={styles.quoteCard}>
+            <View style={styles.quoteIconContainer}>
+              <IconSymbol name="quote.bubble.fill" size={28} color={colors.highlight} />
+            </View>
+            <Text style={styles.quoteText}>&quot;{quote}&quot;</Text>
+            <Text style={styles.quoteLabel}>Daily Motivation</Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today&apos;s Stats</Text>
@@ -141,6 +154,42 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
+  },
+  quoteCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.highlight + '40',
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+    elevation: 4,
+  },
+  quoteIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.highlight + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  quoteText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+    lineHeight: 26,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  quoteLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   section: {
     marginBottom: 24,

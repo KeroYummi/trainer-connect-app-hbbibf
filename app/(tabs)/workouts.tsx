@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 import { Stack } from "expo-router";
+import { Client, mockClients } from "@/data/clients";
 
 interface Exercise {
   id: string;
@@ -20,6 +21,8 @@ interface Workout {
   type: string;
   duration: number;
   exercises: Exercise[];
+  clientId?: string;
+  clientName?: string;
 }
 
 export default function WorkoutsScreen() {
@@ -29,6 +32,8 @@ export default function WorkoutsScreen() {
       date: 'Today',
       type: 'Upper Body',
       duration: 45,
+      clientId: '1',
+      clientName: 'John Doe',
       exercises: [
         { id: '1', name: 'Bench Press', sets: 3, reps: 10, weight: 135 },
         { id: '2', name: 'Shoulder Press', sets: 3, reps: 12, weight: 65 },
@@ -40,6 +45,8 @@ export default function WorkoutsScreen() {
       date: 'Yesterday',
       type: 'Lower Body',
       duration: 50,
+      clientId: '2',
+      clientName: 'Jane Smith',
       exercises: [
         { id: '1', name: 'Squats', sets: 4, reps: 8, weight: 185 },
         { id: '2', name: 'Leg Press', sets: 3, reps: 12, weight: 270 },
@@ -49,6 +56,8 @@ export default function WorkoutsScreen() {
   ]);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showClientPicker, setShowClientPicker] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [newWorkoutType, setNewWorkoutType] = useState('');
   const [newExerciseName, setNewExerciseName] = useState('');
   const [newSets, setNewSets] = useState('');
@@ -56,7 +65,7 @@ export default function WorkoutsScreen() {
   const [newWeight, setNewWeight] = useState('');
 
   const handleAddWorkout = () => {
-    if (!newWorkoutType || !newExerciseName || !newSets || !newReps || !newWeight) {
+    if (!newWorkoutType || !newExerciseName || !newSets || !newReps || !newWeight || !selectedClient) {
       return;
     }
 
@@ -65,6 +74,8 @@ export default function WorkoutsScreen() {
       date: 'Today',
       type: newWorkoutType,
       duration: 0,
+      clientId: selectedClient.id,
+      clientName: selectedClient.name,
       exercises: [
         {
           id: '1',
@@ -78,11 +89,17 @@ export default function WorkoutsScreen() {
 
     setWorkouts([newWorkout, ...workouts]);
     setShowAddModal(false);
+    setSelectedClient(null);
     setNewWorkoutType('');
     setNewExerciseName('');
     setNewSets('');
     setNewReps('');
     setNewWeight('');
+  };
+
+  const handleClientSelect = (client: Client) => {
+    setSelectedClient(client);
+    setShowClientPicker(false);
   };
 
   return (
@@ -123,8 +140,8 @@ export default function WorkoutsScreen() {
             <Text style={styles.statLabel}>Total Workouts</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>4</Text>
-            <Text style={styles.statLabel}>This Week</Text>
+            <Text style={styles.statValue}>{mockClients.length}</Text>
+            <Text style={styles.statLabel}>Active Clients</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>12</Text>
@@ -143,6 +160,12 @@ export default function WorkoutsScreen() {
               <View style={styles.workoutInfo}>
                 <Text style={styles.workoutType}>{workout.type}</Text>
                 <Text style={styles.workoutDate}>{workout.date}</Text>
+                {workout.clientName && (
+                  <View style={styles.clientBadge}>
+                    <IconSymbol name="person.fill" size={12} color={colors.secondary} />
+                    <Text style={styles.clientName}>{workout.clientName}</Text>
+                  </View>
+                )}
               </View>
               {workout.duration > 0 && (
                 <View style={styles.durationBadge}>
@@ -165,6 +188,7 @@ export default function WorkoutsScreen() {
         ))}
       </ScrollView>
 
+      {/* Add Workout Modal */}
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -181,6 +205,25 @@ export default function WorkoutsScreen() {
             </View>
 
             <ScrollView style={styles.modalForm} showsVerticalScrollIndicator={false}>
+              <Text style={styles.inputLabel}>Select Client *</Text>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.clientSelector,
+                  pressed && styles.clientSelectorPressed
+                ]}
+                onPress={() => setShowClientPicker(true)}
+              >
+                {selectedClient ? (
+                  <View style={styles.selectedClientContainer}>
+                    <IconSymbol name="person.circle.fill" size={24} color={colors.primary} />
+                    <Text style={styles.selectedClientText}>{selectedClient.name}</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.clientSelectorPlaceholder}>Choose a client</Text>
+                )}
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+
               <Text style={styles.inputLabel}>Workout Type</Text>
               <TextInput
                 style={styles.input}
@@ -240,12 +283,55 @@ export default function WorkoutsScreen() {
               <Pressable
                 style={({ pressed }) => [
                   styles.saveButton,
+                  (!selectedClient || !newWorkoutType || !newExerciseName || !newSets || !newReps || !newWeight) && styles.saveButtonDisabled,
                   pressed && styles.saveButtonPressed
                 ]}
                 onPress={handleAddWorkout}
+                disabled={!selectedClient || !newWorkoutType || !newExerciseName || !newSets || !newReps || !newWeight}
               >
                 <Text style={styles.saveButtonText}>Save Workout</Text>
               </Pressable>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Client Picker Modal */}
+      <Modal
+        visible={showClientPicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowClientPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Client</Text>
+              <Pressable onPress={() => setShowClientPicker(false)}>
+                <IconSymbol name="xmark.circle.fill" size={28} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            <ScrollView style={styles.clientList} showsVerticalScrollIndicator={false}>
+              {mockClients.map((client) => (
+                <Pressable
+                  key={client.id}
+                  style={({ pressed }) => [
+                    styles.clientItem,
+                    pressed && styles.clientItemPressed
+                  ]}
+                  onPress={() => handleClientSelect(client)}
+                >
+                  <View style={styles.clientItemIcon}>
+                    <IconSymbol name="person.circle.fill" size={40} color={colors.primary} />
+                  </View>
+                  <View style={styles.clientItemInfo}>
+                    <Text style={styles.clientItemName}>{client.name}</Text>
+                    <Text style={styles.clientItemEmail}>{client.email}</Text>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+                </Pressable>
+              ))}
             </ScrollView>
           </View>
         </View>
@@ -361,6 +447,18 @@ const styles = StyleSheet.create({
   workoutDate: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  clientBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  clientName: {
+    fontSize: 12,
+    color: colors.secondary,
+    fontWeight: '600',
   },
   durationBadge: {
     backgroundColor: colors.accent + '30',
@@ -429,6 +527,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 12,
   },
+  clientSelector: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  clientSelectorPressed: {
+    opacity: 0.7,
+  },
+  clientSelectorPlaceholder: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  selectedClientContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectedClientText: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '500',
+  },
   input: {
     backgroundColor: colors.background,
     borderWidth: 1,
@@ -454,6 +579,10 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
+  saveButtonDisabled: {
+    backgroundColor: colors.textSecondary,
+    opacity: 0.5,
+  },
   saveButtonPressed: {
     opacity: 0.8,
   },
@@ -461,5 +590,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  clientList: {
+    flex: 1,
+  },
+  clientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  clientItemPressed: {
+    opacity: 0.7,
+  },
+  clientItemIcon: {
+    marginRight: 12,
+  },
+  clientItemInfo: {
+    flex: 1,
+  },
+  clientItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  clientItemEmail: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });
