@@ -2,17 +2,17 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  background: '#f9f9f9',
-  text: '#212121',
-  textSecondary: '#757575',
-  primary: '#64b5f6',
-  secondary: '#aed581',
-  accent: '#ffb74d',
-  card: '#ffffff',
-  highlight: '#ffee58',
-  border: '#e0e0e0',
-  error: '#ef5350',
-  success: '#66bb6a',
+  background: '#0f1419',
+  text: '#e3e3e3',
+  textSecondary: '#8b8b8b',
+  primary: '#343a40',
+  secondary: '#495057',
+  accent: '#6c757d',
+  card: '#1a1f26',
+  highlight: '#2d3339',
+  border: '#2d3339',
+  error: '#8b3a3a',
+  success: '#4a6b4a',
 };
 
 export const buttonStyles = StyleSheet.create({
@@ -22,7 +22,7 @@ export const buttonStyles = StyleSheet.create({
     width: '100%',
   },
   backButton: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.highlight,
     alignSelf: 'center',
     width: '100%',
     borderWidth: 1,
@@ -82,7 +82,7 @@ export const commonStyles = StyleSheet.create({
     padding: 16,
     marginVertical: 8,
     width: '100%',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   icon: {
